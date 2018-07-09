@@ -53,22 +53,35 @@ void randomSpot(int *car,int **map,int size)
   }
 }
 
-void ruaVertical(int **map, int size)
+int ruaVertical(int **map, int size,int vertical)
 {
-  int i,coluna = rand()%size;
+  int i,coluna = (rand()+1)%size-1;
+  if(vertical != -1)
+  {
+    while(!(coluna!=vertical && coluna != 0)) { coluna = rand()%size; }
+  }
   for(i=0;i<size;i++)
   {
     map[i][coluna] = RUA;
   }
+  return coluna;
 }
-void ruaHorizontal(int **map, int size)
+
+int ruaHorizontal(int **map, int size,int horizontal)
 {
-  int i,linha = rand()%size;
+  int i,linha = rand()%(size-1);
+  if(horizontal != -1)
+  {
+    while(!(linha!=horizontal && linha!=0)) { linha = rand()%(size-1); }
+  }
+
   for(i=0;i<size;i++)
   {
     map[linha][i] = RUA;
   }
+  return linha;
 }
+
 int checkSpot(int *pos,int **map)
 {
   return(map[pos[0]][pos[1]]);
@@ -88,11 +101,11 @@ void showPos(int *vec)
 {
   printf("(%d,%d)\n",vec[0],vec[1]);
 }
-void cruzamento(int **map, int size)
+void cruzamento(int **map, int size,int street)
 {
   int *pos = calloc(sizeof(int),2);
-  pos[0] = rand()%size;
-  pos[1] = rand()%size;
+  pos[0] = 0;
+  pos[1] = street;
   int found = 0;
   int up[2] = {-1,0};
   int down[2] = {1,0};
@@ -100,41 +113,50 @@ void cruzamento(int **map, int size)
   int right[2] = {0,1};
   while(!found)
   {
-    while(map[pos[0]][pos[1]]!=RUA)
-    {
-      pos[0] = rand()%size;
-      pos[1] = rand()%size;
-    }
-    if( (!outOfBounds(movement(pos,up)  ,size)      && checkSpot  (movement(pos,up),map)    == RUA)    &&
-        (!outOfBounds(movement(pos,down),size)      && checkSpot  (movement(pos,down),map)  == RUA)    &&
-        (!outOfBounds(movement(pos,left),size)      && checkSpot  (movement(pos,left),map)  == RUA)    &&
-        (!outOfBounds(movement(pos,right),size)     && checkSpot  (movement(pos,right),map) == RUA))
+    if( ((!outOfBounds(movement(pos,up)  ,size)      && ((checkSpot(movement(pos,up),map)    == RUA) || checkSpot(movement(pos,up),map) == SEMAFORO)) || outOfBounds(movement(pos,up),size))    &&
+        ((!outOfBounds(movement(pos,down),size)      && ((checkSpot(movement(pos,down),map)  == RUA) || checkSpot(movement(pos,down),map) == SEMAFORO))|| outOfBounds(movement(pos,down),size))    &&
+        ((!outOfBounds(movement(pos,left),size)      && ((checkSpot(movement(pos,left),map)  == RUA) || checkSpot(movement(pos,left),map) == SEMAFORO))|| outOfBounds(movement(pos,left),size))    &&
+        ((!outOfBounds(movement(pos,right),size)     && ((checkSpot(movement(pos,right),map) == RUA) || checkSpot(movement(pos,right),map) == SEMAFORO))|| outOfBounds(movement(pos,right),size)))
     {
       if(map[pos[0]][pos[1]] != SEMAFORO)
       {
         map[pos[0]][pos[1]]=SEMAFORO;
         found=1;
       }
+      else pos[0]++;
     }
     else
     {
-      pos[0] = rand()%size;
-      pos[1] = rand()%size;
+      pos[0]++;
     }
+  }
+}
+
+int *direction(int sV,int nV, int wH, int eH)
+{
+  if (/* condition */) {
+    /* code */
+  } else if (/* condition */) {
+    /* code */
+  } else {
+    /* code */
   }
 }
 int main()
 {
   srand(time(0));
-  int size = 10;
+  int i,size = 10;
   int *carro = newCar(0,0,1,0,0);
   int **mapa = newMap(size);
-  ruaHorizontal(mapa,size);
-  showMap(mapa,size);  
-  ruaVertical(mapa,size);
-  showMap(mapa,size);
-  cruzamento(mapa,size);
-  showMap(mapa,size);
+  int southVertical = ruaVertical(mapa,size,-1);
+  int westHorizontal = ruaHorizontal(mapa,size,-1);
+  int northVertical = ruaVertical(mapa,size,southVertical);
+  int eastHorizontal = ruaHorizontal(mapa,size,westHorizontal);
+  for(i=0;i<2;i++)
+  {
+    cruzamento(mapa,size,southVertical);
+    cruzamento(mapa,size,northVertical);
+  }
   randomSpot(carro,mapa,size);
   showMap(mapa,size);
   printf("Carro (%d,%d)\n",carro[0],carro[1]);
