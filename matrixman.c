@@ -10,6 +10,26 @@
 #define SEMAFOROOCUPADO 3   //Quer dizer que a posição do semáforo tem um carro.
 #define RUAOCUPADA 4        //idem.
 //end of reserved area
+typedef struct rua {
+  int *init;
+  int *end;
+}rua;
+
+typedef struct carro {
+  int *pos;
+  int moving;
+  int *dir;
+  int id;
+} carro;
+carro *newCar(int *pos, int *dir, int id,int moving)
+{
+  carro *newCar = malloc(sizeof(carro));
+  newCar->pos = pos;
+  newCar->dir = dir;
+  newCar->moving = moving;
+  newCar->id = id;
+  return newCar;
+}
 int **newMap(int size){                        //O mapa será preenchido com as variáveis acima,
   int i,j;                                  //Permitindo a independência dos carros, que serão
   int **newMap = malloc(sizeof(int*)*size); //Criados como vetores relativos ao mapa somente
@@ -34,22 +54,12 @@ void showMap(int **map,int size)
   printf("\n");
 }
 
-int *newCar(int x, int y, int dirX, int dirY, int id)
+void randomSpot(carro *carro,int **map,int size)
 {
-  int *newCar = malloc(sizeof(int)*5);
-  newCar[0] = x;
-  newCar[1] = y;
-  newCar[2] = dirX;
-  newCar[3] = dirY;
-  newCar[4] = id;
-  return newCar;
-}
-void randomSpot(int *car,int **map,int size)
-{
-  while(map[car[0]][car[1]]!=RUA)
+  while(map[carro->pos[0]][carro->pos[1]]!=RUA)
   {
-    car[0] = rand()%size;
-    car[1] = rand()%size;
+    carro->pos[0] = rand()%size;
+    carro->pos[1] = rand()%size;
   }
 }
 
@@ -132,21 +142,12 @@ void cruzamento(int **map, int size,int street)
   }
 }
 
-int *direction(int sV,int nV, int wH, int eH)
-{
-  if (/* condition */) {
-    /* code */
-  } else if (/* condition */) {
-    /* code */
-  } else {
-    /* code */
-  }
-}
 int main()
 {
   srand(time(0));
   int i,size = 10;
-  int *carro = newCar(0,0,1,0,0);
+  int pos[2] = {0,0};
+  carro *carro = newCar(pos,pos,1,1);
   int **mapa = newMap(size);
   int southVertical = ruaVertical(mapa,size,-1);
   int westHorizontal = ruaHorizontal(mapa,size,-1);
@@ -159,6 +160,6 @@ int main()
   }
   randomSpot(carro,mapa,size);
   showMap(mapa,size);
-  printf("Carro (%d,%d)\n",carro[0],carro[1]);
+  //printf("Carro (%d,%d)\n",carro[0],carro[1]);
   return 0;
 }
