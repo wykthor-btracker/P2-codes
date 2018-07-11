@@ -30,10 +30,10 @@ carro *newCar(int *pos, int *dir, int id,int moving)
   newCar->id = id;
   return newCar;
 }
-int **newMap(int size){                        //O mapa será preenchido com as variáveis acima,
-  int i,j;                                  //Permitindo a independência dos carros, que serão
-  int **newMap = malloc(sizeof(int*)*size); //Criados como vetores relativos ao mapa somente
-  for(i=0;i<size;i++)                       //Por descreverem a mesma posição.
+int **newMap(int size){                       //O mapa será preenchido com as variáveis acima,
+  int i;                                      //Permitindo a independência dos carros, que serão
+  int **newMap = malloc(sizeof(int*)*size);   //Criados como vetores relativos ao mapa somente
+  for(i=0;i<size;i++)                         //Por descreverem a mesma posição.
   {
     newMap[i] = calloc(sizeof(int),size);
   }
@@ -62,34 +62,68 @@ void randomSpot(carro *carro,int **map,int size)
     carro->pos[1] = rand()%size;
   }
 }
-
-int ruaVertical(int **map, int size,int vertical)
+int *newVec(int x, int y)
 {
-  int i,coluna = (rand()+1)%size-1;
-  if(vertical != -1)
+	int *newVec = malloc(sizeof(int)*2);
+	newVec[0] = x;
+	newVec[1] = y;
+	return newVec;
+}
+rua *ruaNova()
+{
+	rua *newRua = malloc(sizeof(rua));
+	newRua->init = NULL;
+	newRua->end = NULL;
+	return newRua;
+}
+rua *ruaVertical(int **map, int size,int sentido,rua *outraRua)
+{
+  int i,coluna = rand()%(size-1);
+  if(outraRua->init != NULL && outraRua->end != NULL)
   {
-    while(!(coluna!=vertical && coluna != 0)) { coluna = rand()%size; }
+    while(!(coluna!=outraRua->init[1] && coluna != 0)) { coluna = rand()%(size-1); }
   }
   for(i=0;i<size;i++)
   {
     map[i][coluna] = RUA;
   }
-  return coluna;
+  rua *newRua = malloc(sizeof(rua));
+  if(sentido)
+  {
+	  newRua->init = newVec(0,coluna);
+	  newRua->end = newVec(size-1,coluna);
+  }
+  else
+  {
+	  newRua->init = newVec(size-1,coluna);
+	  newRua->end = newVec(0,coluna);
+  }
+  return newRua;
 }
 
-int ruaHorizontal(int **map, int size,int horizontal)
+rua *ruaHorizontal(int **map, int size,int sentido,rua *outraRua)
 {
   int i,linha = rand()%(size-1);
-  if(horizontal != -1)
+  if(outraRua->init != NULL && outraRua->end != NULL)
   {
-    while(!(linha!=horizontal && linha!=0)) { linha = rand()%(size-1); }
+    while(!(linha!=outraRua->init[0] && linha != 0)) { linha = rand()%(size-1); }
   }
-
   for(i=0;i<size;i++)
   {
     map[linha][i] = RUA;
   }
-  return linha;
+  rua *newRua = malloc(sizeof(rua));
+  if(sentido)
+  {
+	  newRua->init = newVec(linha,0);
+	  newRua->end = newVec(linha,size-1);
+  }
+  else
+  {
+	  newRua->init = newVec(linha,size-1);
+	  newRua->end = newVec(linha,0);
+  }
+  return newRua;
 }
 
 int checkSpot(int *pos,int **map)
@@ -141,7 +175,10 @@ void cruzamento(int **map, int size,int street)
     }
   }
 }
-
+int compRua(rua *ruaA, rua *ruaB)
+{
+	return(ruaA->init == ruaB->init && ruaA->end == ruaB->end);
+}
 int main()
 {
   srand(time(0));
@@ -149,17 +186,18 @@ int main()
   int pos[2] = {0,0};
   carro *carro = newCar(pos,pos,1,1);
   int **mapa = newMap(size);
-  int southVertical = ruaVertical(mapa,size,-1);
-  int westHorizontal = ruaHorizontal(mapa,size,-1);
-  int northVertical = ruaVertical(mapa,size,southVertical);
-  int eastHorizontal = ruaHorizontal(mapa,size,westHorizontal);
+  rua *stud = ruaNova();
+  rua *ruaLeste = ruaHorizontal(mapa,size,1,stud);
+  rua *ruaSul = ruaVertical(mapa,size,1,stud);
+  rua *ruaOeste = ruaHorizontal(mapa,size,0,ruaLeste);
+  rua *ruaNorte = ruaVertical(mapa,size,0,ruaSul);
   for(i=0;i<2;i++)
   {
-    cruzamento(mapa,size,southVertical);
-    cruzamento(mapa,size,northVertical);
+	  cruzamento(mapa,size,ruaNorte->init[1]);
+	  cruzamento(mapa,size,ruaSul->init[1]);
   }
-  randomSpot(carro,mapa,size);
   showMap(mapa,size);
+  printf("Rua 1: (%d,%d)\nRua 2: (%d,%d)\nRua 3: (%d,%d)\nRua 4: (%d,%d)\n",ruaLeste->init[0],ruaLeste->init[1],ruaOeste->init[0],ruaOeste->init[1],ruaSul->init[0],ruaSul->init[1],ruaNorte->init[0],ruaNorte->init[1]);
   //printf("Carro (%d,%d)\n",carro[0],carro[1]);
   return 0;
 }
