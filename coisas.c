@@ -7,7 +7,7 @@ typedef struct pilha
 	pilha *prox;
 	int val;
 }pilha;
-
+void mostraPilha(pilha *stack);
 pilha *novaPilha(int val)
 {
 	pilha *novaPilha = malloc(sizeof(pilha));
@@ -15,12 +15,13 @@ pilha *novaPilha(int val)
 	novaPilha->val = val;
 	return novaPilha;
 }
+
 int pop(pilha **Mpilha)
 {
 	if(*Mpilha!=NULL)
 	{
 		int val = (*Mpilha)->val;
-		*Mpilha = (*Mpilha)->prox;
+		*Mpilha = (*Mpilha)->prox;		
 		return val;
 	}
 	else
@@ -57,17 +58,12 @@ int tamanhoDaPilha(pilha *stack)
 }
 int binaryToInt(pilha **stack)
 {
-	pilha *newStack = novaPilha(0);
-	int val,i;
-	while(*stack!=NULL)
-	{
-		val = pop(stack);
-		if(val!=NULL) newStack = push(newStack,val);
-	}
+	int val,i,aux;
 	val = 0;
-	for(i=tamanhoDaPilha(newStack);i>=0;i--)
+	for(i=tamanhoDaPilha(*stack);i>=0;i--)
 	{
-		val+=pop(&newStack)*pow(2,i);
+		aux = pop(stack);
+		val+=aux*pow(2,i);
 	}
 	return val;
 }
@@ -76,6 +72,7 @@ int peek(pilha *stack)
 {
 	return(stack->val);
 }
+
 void mostraPilha(pilha *stack)
 {
 	while(stack != NULL)
@@ -83,10 +80,12 @@ void mostraPilha(pilha *stack)
 		printf(" %d ",peek(stack));
 		stack = stack->prox;
 	}
+	printf("\n");
 }
+
 int main()
 {
-	pilha *bin = intToBinary(5);
+	pilha *bin = intToBinary(234);
 	printf("%d",binaryToInt(&bin));
 	return 0;
 }
